@@ -1,68 +1,34 @@
-from pyrogram import Client
 import asyncio
-from plugins.config import SUDO_USERS
-from plugins.config import PMPERMIT
-from pyrogram import filters
-from pyrogram.types import Message
-from plugins.services.callsmusic import client as USER
+from pyrogram import Client, filters
+from helpers.bot_utils import USERNAME
+from pyrogram.errors import BotInlineDisabled
+from config import API_ID, API_HASH, SESSION_STRING, REPLY_MESSAGE, OLD_PMS
 
-PMSET =True
-pchats = []
+User = Client(
+    SESSION_STRING,
+    API_ID,
+    API_HASH
+)
 
-@USER.on_message(filters.text & filters.private & ~filters.me & ~filters.bot)
-async def pmPermit(client: USER, message: Message):
-    if PMPERMIT == "ENABLE":
-        if PMSET:
-            chat_id = message.chat.id
-            if chat_id in pchats:
-                return
-            await USER.send_message(
+
+@User.on_message(filters.private & filters.incoming & ~filters.bot & ~filters.service & ~filters.me & ~filters.edited & ~filters.chat([777000, 454000]))
+async def nopm(client, message):
+    if REPLY_MESSAGE is not None:
+        try:
+            inline = await client.get_inline_bot_results(USERNAME, "SAF_ONE")
+            m = await client.send_inline_bot_result(
                 message.chat.id,
-                "Hi there, This is a music assistant service .\n\n ❗️ Rules:\n   - No chatting allowed\n   - No spam allowed \n\n 👉 **SEND GROUP INVITE LINK OR USERNAME IF USERBOT CAN'T JOIN YOUR GROUP.**\n\n ⚠️ Disclamer: If you are sending a message here it means admin will see your message and join chat\n    - Don't add this user to secret groups.\n   - Don't Share private info here\n\n",
-            )
-            return
-
-    
-
-@Client.on_message(filters.command(["/pmpermit"]))
-async def bye(client: Client, message: Message):
-    if message.from_user.id in SUDO_USERS:
-        global PMSET
-        text = message.text.split(" ", 1)
-        queryy = text[1]
-        if queryy == "on":
-            PMSET = True
-            await message.reply_text("Pmpermit turned on")
-            return
-        if queryy == "off":
-            PMSET = None
-            await message.reply_text("Pmpermit turned off")
-            return
-
-@USER.on_message(filters.text & filters.private & filters.me)        
-async def autopmPermiat(client: USER, message: Message):
-    chat_id = message.chat.id
-    if not chat_id in pchats:
-        pchats.append(chat_id)
-        await message.reply_text("Approoved to PM due to outgoing messages")
-        return
-    message.continue_propagation()    
-    
-@USER.on_message(filters.command("a", [".", ""]) & filters.me & filters.private)
-async def pmPermiat(client: USER, message: Message):
-    chat_id = message.chat.id
-    if not chat_id in pchats:
-        pchats.append(chat_id)
-        await message.reply_text("Approoved to PM")
-        return
-    message.continue_propagation()    
-    
-
-@USER.on_message(filters.command("da", [".", ""]) & filters.me & filters.private)
-async def rmpmPermiat(client: USER, message: Message):
-    chat_id = message.chat.id
-    if chat_id in pchats:
-        pchats.remove(chat_id)
-        await message.reply_text("Dispprooved to PM")
-        return
-    message.continue_propagation()
+                query_id=inline.query_id,
+                result_id=inline.results[0].id,
+                hide_via=True
+                )
+            old = OLD_PMS.get(message.chat.id)
+            if old:
+                await client.delete_messages(message.chat.id, [old["msg"], old["s"]])
+            OLD_PMS[message.chat.id] = {"msg":m.updates[1].message.id, "s":message.message_id}
+        except BotInlineDisabled:
+            print(f"[WARN] - Inline Mode for @{USERNAME} is not enabled. Enable from @Botfather to enable PM Permit !")
+            await message.reply_text(f"{REPLY_MESSAGE}\n\n<b>© Powered By : \n@AsmSafone | @AsmSupport 👑</b>")
+        except Exception as e:
+            print(e)
+            pass
