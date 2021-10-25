@@ -17,7 +17,7 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>
 """
 
 import os
-from plugins.nopm import User
+
 from pyrogram import Client, idle
 from config import API_ID, API_HASH, BOT_TOKEN
 
@@ -33,9 +33,9 @@ if not os.path.isdir("./downloads"):
 
 Bot.start()
 User.start()
-print("\n[INFO] - STARTED VIDEO PLAYER BOT, JOIN @ASMSAFONE !")
+print("\n[INFO] - STARTED VIDEO PLAYER BOT, JOIN @MaxRobotSupport !")
 
 idle()
 Bot.stop()
 User.stop()
-print("\n[INFO] - STOPPED VIDEO PLAYER BOT, JOIN @ASMSAFONE !")
+print("\n[INFO] - STOPPED VIDEO PLAYER BOT, JOIN @MaxRobotSupport !")
