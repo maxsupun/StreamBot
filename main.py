@@ -1,7 +1,7 @@
 
 
 import os
-
+from plugins.nopm import User
 from pyrogram import Client, idle
 from config import API_ID, API_HASH, BOT_TOKEN
 
